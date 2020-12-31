@@ -23,6 +23,7 @@ public class Controller {
 
     @FXML
     protected void initialize() {
+        //Making it easier to access the chess piece images
         for (int i = 0; i < diffPiecesNoColor.length; i++) {
             pieceNameToImg.put(diffPiecesNoColor[i] + "_white", new Image(directoryPath + diffPiecesNoColor[i] + "_white.png"));
             pieceNameToImg.put(diffPiecesNoColor[i] + "_black", new Image(directoryPath + diffPiecesNoColor[i] + "_black.png"));
@@ -45,11 +46,15 @@ public class Controller {
             boardContainer.getColumnConstraints().add(c);
             boardContainer.getRowConstraints().add(r);
         }
-
+        //Initializes the board to the default configurations
         drawBoard();
     }
 
     public void drawBoard() {
+        int[] selectedLocArr = boardClass.getSelectedLoc(); //default {-1,-1} -> none selected
+        int selectedI = selectedLocArr[0];
+        int selectedJ = selectedLocArr[1];
+
         for (int i = 0; i < boardClass.board.length; i++) {
             for (int j = 0; j < boardClass.board[i].length; j++) {
                 //Background
@@ -57,11 +62,19 @@ public class Controller {
                 tempCont.setAlignment(Pos.CENTER);
                 tempCont.prefHeight(70);
                 tempCont.prefWidth(70);
-                if ((i + j) % 2 == 0) { //cross pattern background
-                    tempCont.setStyle("-fx-background-color: #EEEED2;");
+
+                //Determines what color the tile background will be
+                String bgHexStr = "";
+                if (shouldHighlight(selectedI, selectedJ, i, j)) {
+                    bgHexStr = "FFFF00";
                 } else {
-                    tempCont.setStyle("-fx-background-color: #769657;");
+                    if ((i + j) % 2 == 0) { //cross pattern background
+                        bgHexStr = "EEEED2";
+                    } else {
+                        bgHexStr = "769657";
+                    }
                 }
+                tempCont.setStyle("-fx-background-color: #" + bgHexStr + ";");
 
                 //Get Image to place in Box
                 String imgName = "empty";
@@ -75,9 +88,33 @@ public class Controller {
                 tempIW.setPreserveRatio(true);
 
                 tempCont.getChildren().add(tempIW);
+
+                //needed because values in the event handler must be of type final
+                final int iTemp = i;
+                final int jTemp = j;
+                //Event Handler for clicking on a tile
+                tempCont.setOnMouseClicked(e -> {
+                    if (boardClass.board[iTemp][jTemp] != null) { //can only select a tile that isn't blank
+                        System.out.println(iTemp + " " + jTemp);
+                        clickedLocationHandler(iTemp, jTemp);
+                    }
+                });
                 boardContainer.add(tempCont, j, i);
             }
         }
+    }
+
+    //Determines what happens when the user selects a tile
+    public void clickedLocationHandler(int i, int j) {
+        boardClass.toggleSelectedLoc(i, j);
+        drawBoard();
+    }
+
+    //Condition, given the selected pieces, determines if the curr location should be highlighted
+    //Now, it's only selecting if it's the selected tile or the one in front of it
+    //Will change to selecting all the tiles that are possible moves
+    public boolean shouldHighlight(int selectedI, int selectedJ, int currI, int currJ) {
+        return currJ == selectedJ && (selectedI - currI == 1 || selectedI - currI == 0);
     }
 
 }

@@ -2,9 +2,23 @@ package sample;
 
 public class BoardClass {
     public ChessPiece[][] board = new ChessPiece[8][8];
+    public int[] selectedLoc = new int[]{-1,-1};
 
     public BoardClass() {
         initializeBoard();
+    }
+
+    public int[] getSelectedLoc() {
+        return selectedLoc;
+    }
+    public void toggleSelectedLoc(int i, int j) {
+        if (selectedLoc[0] == i && selectedLoc[1] == j) { //if clicking a selected spot, it un-selects it
+            selectedLoc[0] = -1;
+            selectedLoc[1] = -1;
+        } else { //changes the selected location to the new coordinates
+            this.selectedLoc[0] = i;
+            this.selectedLoc[1] = j;
+        }
     }
 
     public void initializeBoard() {
