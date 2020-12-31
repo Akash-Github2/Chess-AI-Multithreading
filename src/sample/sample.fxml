@@ -1,8 +1,27 @@
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.GridPane?>
+<?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<GridPane fx:controller="sample.Controller"
-          xmlns:fx="http://javafx.com/fxml" alignment="center" hgap="10" vgap="10">
-</GridPane>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="center" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller" style="-fx-background-color: #323742;">
+    <children>
+        <GridPane fx:id="boardContainer" alignment="CENTER" hgap="1" maxHeight="600" maxWidth="600" minHeight="600" minWidth="600" vgap="1">
+            <padding><Insets bottom="25" left="50" right="50" top="25" /></padding>
+        </GridPane>
+        <HBox>
+            <padding><Insets left="20" right="20" /></padding>
+
+            <children>
+                <Label text="Player 1" style="-fx-text-fill: #FFFFFF;"/>
+                <Region HBox.hgrow="ALWAYS" />
+                <Label text="Computer" style="-fx-text-fill: #FFFFFF;"/>
+            </children>
+        </HBox>
+    </children>
+</VBox>
