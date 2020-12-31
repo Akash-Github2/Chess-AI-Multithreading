@@ -70,11 +70,99 @@ public abstract class ChessPiece {
     }
 
     private ArrayList<Integer[]> getPosMoves4Bishop(ChessPiece[][] board) {
-        return new ArrayList<>();
+        ArrayList<Integer[]> posMoves = new ArrayList<>();
+        //Go TL
+        int tempI = location[0] - 1;
+        int tempJ = location[1] - 1;
+        while(tempI >= 0 && tempJ >= 0 && (board[tempI][tempJ] == null || board[tempI][tempJ].isWhite() != isWhite())) { //Within bounds and not same piece
+            posMoves.add(new Integer[]{tempI, tempJ});
+            //Different Piece
+            if (board[tempI][tempJ] != null && board[tempI][tempJ].isWhite() != isWhite()) {
+                break;
+            }
+            tempI--;
+            tempJ--;
+        }
+        //Go BL
+        tempI = location[0] + 1;
+        tempJ = location[1] - 1;
+        while(tempI < 8 && tempJ >= 0 && (board[tempI][tempJ] == null || board[tempI][tempJ].isWhite() != isWhite())) {
+            posMoves.add(new Integer[]{tempI, tempJ});
+            if (board[tempI][tempJ] != null && board[tempI][tempJ].isWhite() != isWhite()) {
+                break;
+            }
+            tempI++;
+            tempJ--;
+        }
+        //Go TR
+        tempI = location[0] - 1;
+        tempJ = location[1] + 1;
+        while(tempI >= 0 && tempJ < 8 && (board[tempI][tempJ] == null || board[tempI][tempJ].isWhite() != isWhite())) {
+            posMoves.add(new Integer[]{tempI, tempJ});
+            if (board[tempI][tempJ] != null && board[tempI][tempJ].isWhite() != isWhite()) {
+                break;
+            }
+            tempI--;
+            tempJ++;
+        }
+        //Go BR
+        tempI = location[0] + 1;
+        tempJ = location[1] + 1;
+        while(tempI < 8 && tempJ < 8 && (board[tempI][tempJ] == null || board[tempI][tempJ].isWhite() != isWhite())) {
+            posMoves.add(new Integer[]{tempI, tempJ});
+            if (board[tempI][tempJ] != null && board[tempI][tempJ].isWhite() != isWhite()) {
+                break;
+            }
+            tempI++;
+            tempJ++;
+        }
+        return posMoves;
     }
 
     private ArrayList<Integer[]> getPosMoves4Rook(ChessPiece[][] board) {
-        return new ArrayList<>();
+        ArrayList<Integer[]> posMoves = new ArrayList<>();
+        //Go L
+        int tempI = location[0];
+        int tempJ = location[1] - 1;
+        while(tempJ >= 0 && (board[tempI][tempJ] == null || board[tempI][tempJ].isWhite() != isWhite())) { //Within bounds and not same piece
+            posMoves.add(new Integer[]{tempI, tempJ});
+            //Different Piece
+            if (board[tempI][tempJ] != null && board[tempI][tempJ].isWhite() != isWhite()) {
+                break;
+            }
+            tempJ--;
+        }
+        //Go Up
+        tempI = location[0] - 1;
+        tempJ = location[1];
+        while(tempI >= 0 && (board[tempI][tempJ] == null || board[tempI][tempJ].isWhite() != isWhite())) {
+            posMoves.add(new Integer[]{tempI, tempJ});
+            if (board[tempI][tempJ] != null && board[tempI][tempJ].isWhite() != isWhite()) {
+                break;
+            }
+            tempI--;
+        }
+        //Go R
+        tempI = location[0];
+        tempJ = location[1] + 1;
+        while(tempJ < 8 && (board[tempI][tempJ] == null || board[tempI][tempJ].isWhite() != isWhite())) {
+            posMoves.add(new Integer[]{tempI, tempJ});
+            if (board[tempI][tempJ] != null && board[tempI][tempJ].isWhite() != isWhite()) {
+                break;
+            }
+            tempJ++;
+        }
+        //Go D
+        tempI = location[0] + 1;
+        tempJ = location[1];
+        while(tempI < 8 && (board[tempI][tempJ] == null || board[tempI][tempJ].isWhite() != isWhite())) {
+            posMoves.add(new Integer[]{tempI, tempJ});
+            if (board[tempI][tempJ] != null && board[tempI][tempJ].isWhite() != isWhite()) {
+                break;
+            }
+            tempI++;
+        }
+        return posMoves;
     }
 
     private ArrayList<Integer[]> getPosMoves4King(BoardClass boardClass) {

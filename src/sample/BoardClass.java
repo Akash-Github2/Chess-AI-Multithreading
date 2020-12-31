@@ -10,6 +10,29 @@ public class BoardClass {
 
     public BoardClass() {
         initializeBoard();
+        //Populates the whitePieces & blackPieces ArrayLists
+        for (int i = 0; i < board[0].length; i++) {
+            if (board[1][i] != null) {
+                blackPieces.add(board[1][i]);
+            }
+        }
+        for (int i = 0; i < board[0].length; i++) {
+            if (i != 4 && board[0][i] != null) {
+                blackPieces.add(board[0][i]);
+            }
+        }
+        blackPieces.add(board[0][4]); //Adds king at the end
+        for (int i = 0; i < board[0].length; i++) {
+            if (board[6][i] != null) {
+                whitePieces.add(board[6][i]);
+            }
+        }
+        for (int i = 0; i < board[0].length; i++) {
+            if (i != 4 && board[7][i] != null) {
+                whitePieces.add(board[7][i]);
+            }
+        }
+        whitePieces.add(board[7][4]);
     }
 
     public int[] getSelectedLoc() {

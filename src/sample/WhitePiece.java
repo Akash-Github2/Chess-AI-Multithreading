@@ -14,6 +14,23 @@ public class WhitePiece extends ChessPiece {
     }
 
     protected ArrayList<Integer[]> getPosMoves4Pawn(ChessPiece[][] board) {
-        return new ArrayList<>();
+        ArrayList<Integer[]> posMoves = new ArrayList<>();
+        //If it can move 1 space up
+        if (location[0] != 0 && board[location[0]-1][location[1]] == null) {
+            posMoves.add(new Integer[]{location[0]-1, location[1]});
+        }
+        //If it can move 2 spaces up
+        if (location[0] == 6 && board[location[0]-2][location[1]] == null && board[location[0]-1][location[1]] == null) {
+            posMoves.add(new Integer[]{location[0]-2, location[1]});
+        }
+        //Checks if piece can move diagonally right
+        if (location[0] != 0 && location[1] != 7 && board[location[0]-1][location[1]+1] != null && !board[location[0]-1][location[1]+1].isWhite()) {
+            posMoves.add(new Integer[]{location[0]-1, location[1]+1});
+        }
+        //Checks if piece can move diagonally left
+        if (location[0] != 0 && location[1] != 0 && board[location[0]-1][location[1]-1] != null && !board[location[0]-1][location[1]-1].isWhite()) {
+            posMoves.add(new Integer[]{location[0]-1, location[1]-1});
+        }
+        return posMoves;
     }
 }

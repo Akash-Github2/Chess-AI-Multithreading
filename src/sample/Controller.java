@@ -97,7 +97,7 @@ public class Controller {
                 //Event Handler for clicking on a tile
                 tempCont.setOnMouseClicked(e -> {
                     if (boardClass.board[iTemp][jTemp] != null) { //can only select a tile that isn't blank
-                        System.out.println(iTemp + " " + jTemp);
+//                        System.out.println(iTemp + " " + jTemp);
                         clickedLocationHandler(iTemp, jTemp);
                     }
                 });
