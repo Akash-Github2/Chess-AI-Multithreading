@@ -10,6 +10,8 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Controller {
@@ -114,7 +116,22 @@ public class Controller {
     //Now, it's only selecting if it's the selected tile or the one in front of it
     //Will change to selecting all the tiles that are possible moves
     public boolean shouldHighlight(int selectedI, int selectedJ, int currI, int currJ) {
-        return currJ == selectedJ && (selectedI - currI == 1 || selectedI - currI == 0);
+        //No tile is selected
+        if (selectedI == -1 && selectedJ == -1) {
+            return false;
+        }
+        //Highlight the tile that is pressed
+        if (currI == selectedI && currJ == selectedJ) {
+            return true;
+        }
+        //Check to see if the current tile is a possible move from the selected tile and highlight it if it is
+        ArrayList<Integer[]> posMoves = boardClass.board[selectedI][selectedJ].getAllPossibleMoves(boardClass);
+        for (Integer[] location : posMoves) {
+            if (currI == location[0] && currJ == location[1]) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

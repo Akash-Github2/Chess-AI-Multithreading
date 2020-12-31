@@ -1,7 +1,11 @@
 package sample;
 
+import java.util.ArrayList;
+
 public class BoardClass {
     public ChessPiece[][] board = new ChessPiece[8][8];
+    public ArrayList<ChessPiece> whitePieces = new ArrayList<>();
+    public ArrayList<ChessPiece> blackPieces = new ArrayList<>();
     public int[] selectedLoc = new int[]{-1,-1};
 
     public BoardClass() {
