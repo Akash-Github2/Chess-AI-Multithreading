@@ -56,6 +56,10 @@ public class Controller {
         int[] selectedLocArr = boardClass.getSelectedLoc(); //default {-1,-1} -> none selected
         int selectedI = selectedLocArr[0];
         int selectedJ = selectedLocArr[1];
+        ArrayList<Integer[]> posMoves = new ArrayList<>();
+        if (selectedI != -1) {
+            posMoves = boardClass.board[selectedI][selectedJ].getPossibleMoves(boardClass);
+        }
 
         for (int i = 0; i < boardClass.board.length; i++) {
             for (int j = 0; j < boardClass.board[i].length; j++) {
@@ -67,7 +71,7 @@ public class Controller {
 
                 //Determines what color the tile background will be
                 String bgHexStr = "";
-                boolean shouldHighlight = shouldHighlight(i, j);
+                boolean shouldHighlight = shouldHighlight(i, j, posMoves);
                 if (shouldHighlight) {
                     bgHexStr = "FFFF00";
                 } else {
@@ -116,7 +120,7 @@ public class Controller {
             } else {
                 boardClass.toggleSelectedLoc(-1, -1);
             }
-        } else { //if a tile selected is a possible move
+        } else { //if a tile selected is a possible move (it will move to the new position)
             boardClass.movePiece(new int[]{selectedI, selectedJ}, new int[]{i,j});
             boardClass.toggleSelectedLoc(-1, -1);
         }
@@ -127,7 +131,7 @@ public class Controller {
     //Condition, given the selected pieces, determines if the curr location should be highlighted
     //Now, it's only selecting if it's the selected tile or the one in front of it
     //Will change to selecting all the tiles that are possible moves
-    public boolean shouldHighlight(int currI, int currJ) {
+    public boolean shouldHighlight(int currI, int currJ, ArrayList<Integer[]> posMoves) { //posMoves is the list of possible moves from the selectedI and selectedJ
         //No tile is selected
         int selectedI = boardClass.getSelectedLoc()[0];
         int selectedJ = boardClass.getSelectedLoc()[1];
@@ -139,7 +143,6 @@ public class Controller {
             return true;
         }
         //Check to see if the current tile is a possible move from the selected tile and highlight it if it is
-        ArrayList<Integer[]> posMoves = boardClass.board[selectedI][selectedJ].getAllPossibleMoves(boardClass);
         for (Integer[] location : posMoves) {
             if (currI == location[0] && currJ == location[1]) {
                 return true;

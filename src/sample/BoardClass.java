@@ -89,7 +89,7 @@ public class BoardClass {
         //Sees if possible moves land on Opposing King
         for (int i = 0; i < attackingPieces.size(); i++) {
             if (!attackingPieces.get(i).getName().equals("king")) { //King can't check other king so won't include King to save time
-                ArrayList<Integer[]> tempPosMoves = attackingPieces.get(i).getAllPossibleMoves(this);
+                ArrayList<Integer[]> tempPosMoves = attackingPieces.get(i).getPossibleMoves(this);
                 for (int j = 0; j < tempPosMoves.size(); j++) {
                     if (tempPosMoves.get(j)[0] == locKing[0] && tempPosMoves.get(j)[1] == locKing[1]) {
                         return true;
@@ -130,5 +130,18 @@ public class BoardClass {
             board[1][j] = new BlackPiece("pawn", 1, 1, j);
             board[6][j] = new WhitePiece("pawn", 1, 6, j);
         }
+    }
+
+    public String toString() {
+        String retStr = "";
+        for (int i = 0; i < board.length; i++) {
+            retStr += "---------------------------------\n";
+            for (int j = 0; j < board[i].length; j++) {
+                retStr += "| " + ((board[i][j] != null) ? board[i][j] : " ") + " ";
+            }
+            retStr += "|\n";
+        }
+        retStr += "---------------------------------\n";
+        return retStr;
     }
 }

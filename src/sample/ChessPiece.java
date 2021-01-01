@@ -31,7 +31,7 @@ public abstract class ChessPiece {
     protected abstract String getImageName();
     protected abstract boolean isWhite();
 
-    public ArrayList<Integer[]> getAllPossibleMoves(BoardClass boardClass) {
+    public ArrayList<Integer[]> getPossibleMoves(BoardClass boardClass) {
         switch(name) {
             case "pawn":
                 return getPosMoves4Pawn(boardClass.board);
@@ -176,40 +176,28 @@ public abstract class ChessPiece {
             //Checks if it's in bounds and not the same color piece
             if (newI >= 0 && newI < 8 && newJ >= 0 && newJ < 8 && (boardClass.board[newI][newJ] == null || boardClass.board[newI][newJ].isWhite() != isWhite())) {
                 //Checks if the move is possible
-                if (isMovePossible(boardClass, new int[]{newI, newJ})) {
+                if (isKingMovePossible(boardClass, location[0], location[1], newI, newJ)) {
                     posMoves.add(new Integer[]{newI, newJ});
                 }
             }
         }
-
         //Still need to implement the castling stuff here!!
 
         return posMoves;
     }
-
-    //locKing is given, not found -> king isn't actually in that spot -> saves time
-    private boolean isMovePossible(BoardClass boardClass, int[] locKing) {
-        ArrayList<ChessPiece> defendingPieces = boardClass.whitePieces; //The one that might be in check
-        ArrayList<ChessPiece> attackingPieces = boardClass.blackPieces;
-        if (!isWhite()) {
-            defendingPieces = boardClass.blackPieces;
-            attackingPieces = boardClass.whitePieces;
-        }
-        //Sees if possible moves land on Defending King
-        for (int i = 0; i < attackingPieces.size(); i++) {
-            //Doesn't check for king because it would cause an infinite loop
-            if (!attackingPieces.get(i).getName().equals("king")) {
-                ArrayList<Integer[]> tempPosMoves = attackingPieces.get(i).getAllPossibleMoves(boardClass);
-                for (int j = 0; j < tempPosMoves.size(); j++) {
-                    if (tempPosMoves.get(j)[0] == locKing[0] && tempPosMoves.get(j)[1] == locKing[1]) {
-                        return false;
-                    }
-                }
-            }
-        }
-        //If the new spot is next to the other king, the move isn't possible
-        return !isNextToOpposingKing(boardClass.board, locKing);
+    public boolean isKingMovePossible(BoardClass boardClass, int locI, int locJ, int newI, int newJ) {
+        ChessPiece origPiece = boardClass.board[newI][newJ];
+        tempMovePiece(locI, locJ, newI, newJ, boardClass.board, null);
+        boolean isMovePossible = !boardClass.isInCheck(isWhite()) && !isNextToOpposingKing(boardClass.board, new int[]{newI, newJ});
+        tempMovePiece(newI, newJ, locI, locJ, boardClass.board, origPiece);
+        return isMovePossible;
     }
+    protected void tempMovePiece(int initI, int initJ, int finI, int finJ, ChessPiece[][] board, ChessPiece toAddInPlace) { //Assumes move is possible
+        board[finI][finJ] = board[initI][initJ];
+        board[finI][finJ].setLocation(new int[]{finI, finJ});
+        board[initI][initJ] = toAddInPlace;
+    }
+
     //Checks if the new position would be next to the opposing king
     private boolean isNextToOpposingKing(ChessPiece[][] board, int[] locKing) {
         int[] iChanges = {-1, 0, 1, -1, 1, -1, 0, 1};
@@ -217,9 +205,13 @@ public abstract class ChessPiece {
         for (int i = 0; i < iChanges.length; i++) {
             int newI = locKing[0] + iChanges[i];
             int newJ = locKing[1] + jChanges[i];
-            //If the spot at [newI][newJ] is occupied by opposing king
-            if (board[newI][newJ] != null && board[newI][newJ].getName().equals("king") && board[newI][newJ].isWhite() != isWhite()) {
-                return true;
+            //Checks if in bounds
+            if (newI >= 0 && newI < 8 && newJ >= 0 && newJ < 8) {
+                //If the spot at [newI][newJ] is occupied by opposing king
+                if (board[newI][newJ] != null && board[newI][newJ].getName().equals("king") && board[newI][newJ].isWhite() != isWhite()) {
+                    System.out.println("King is next to the thing at " + locKing[0] + " " + locKing[1]);
+                    return true;
+                }
             }
         }
         return false;
