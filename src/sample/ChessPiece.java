@@ -3,19 +3,19 @@ package sample;
 import java.util.ArrayList;
 
 public abstract class ChessPiece {
-    protected String name; //pawn, knight, bishop, rook, queen, king
+    protected Piece piece; //pawn, knight, bishop, rook, queen, king (as a enum)
     protected double numVal; //1, 3, 3, 5, 10, 100
-    protected int[] location = new int[2]; // {i,j}
+    protected int[] location; // {i,j}
 
-    protected ChessPiece(String name, double numVal, int[] location) {
-        this.name = name;
+    protected ChessPiece(Piece piece, double numVal, int locI, int locJ) {
+        this.piece = piece;
         this.numVal = numVal;
-        this.location[0] = location[0];
-        this.location[1] = location[1];
+        this.location = new int[]{locI, locJ};
     }
 
-    public String getName() {
-        return name;
+    //Returns type of piece as enum value (Piece.KING, Piece.ROOK, etc...)
+    public Piece getPiece() {
+        return piece;
     }
     public double getNumVal() {
         return numVal;
@@ -23,30 +23,30 @@ public abstract class ChessPiece {
     public int[] getLocation() {
         return location;
     }
-    public void setLocation(int[] location) {
-        this.location[0] = location[0];
-        this.location[1] = location[1];
+    public void setLocation(int locI, int locJ) {
+        this.location[0] = locI;
+        this.location[1] = locJ;
     }
 
     protected abstract String getImageName();
     protected abstract boolean isWhite();
 
     public ArrayList<Integer[]> getPossibleMoves(BoardClass boardClass) {
-        switch(name) {
-            case "pawn":
+        switch(piece) {
+            case PAWN:
                 return getPosMoves4Pawn(boardClass.board);
-            case "knight":
+            case KNIGHT:
                 return getPosMoves4Knight(boardClass.board);
-            case "bishop":
+            case BISHOP:
                 return getPosMoves4Bishop(boardClass.board);
-            case "rook":
+            case ROOK:
                 return getPosMoves4Rook(boardClass.board);
-            case "queen":
+            case QUEEN:
                 //adds all the possible moves of rook to that of bishop
                 ArrayList<Integer[]> posMoves4Queen = getPosMoves4Bishop(boardClass.board);
                 posMoves4Queen.addAll(getPosMoves4Rook(boardClass.board));
                 return posMoves4Queen;
-            case "king":
+            case KING:
                 return getPosMoves4King(boardClass);
         }
         return new ArrayList<>();
@@ -188,28 +188,28 @@ public abstract class ChessPiece {
     public boolean isKingMovePossible(BoardClass boardClass, int locI, int locJ, int newI, int newJ) {
         ChessPiece origPiece = boardClass.board[newI][newJ];
         tempMovePiece(locI, locJ, newI, newJ, boardClass.board, null);
-        boolean isMovePossible = !boardClass.isInCheck(isWhite()) && !isNextToOpposingKing(boardClass.board, new int[]{newI, newJ});
+        boolean isMovePossible = !boardClass.isInCheck(isWhite()) && !isNextToOpposingKing(boardClass.board, newI, newJ);
         tempMovePiece(newI, newJ, locI, locJ, boardClass.board, origPiece);
         return isMovePossible;
     }
     protected void tempMovePiece(int initI, int initJ, int finI, int finJ, ChessPiece[][] board, ChessPiece toAddInPlace) { //Assumes move is possible
         board[finI][finJ] = board[initI][initJ];
-        board[finI][finJ].setLocation(new int[]{finI, finJ});
+        board[finI][finJ].setLocation(finI, finJ);
         board[initI][initJ] = toAddInPlace;
     }
 
     //Checks if the new position would be next to the opposing king
-    private boolean isNextToOpposingKing(ChessPiece[][] board, int[] locKing) {
+    private boolean isNextToOpposingKing(ChessPiece[][] board, int locI, int locJ) {
         int[] iChanges = {-1, 0, 1, -1, 1, -1, 0, 1};
         int[] jChanges = {-1, -1, -1, 0, 0, 1, 1, 1};
         for (int i = 0; i < iChanges.length; i++) {
-            int newI = locKing[0] + iChanges[i];
-            int newJ = locKing[1] + jChanges[i];
+            int newI = locI + iChanges[i];
+            int newJ = locJ + jChanges[i];
             //Checks if in bounds
             if (newI >= 0 && newI < 8 && newJ >= 0 && newJ < 8) {
                 //If the spot at [newI][newJ] is occupied by opposing king
-                if (board[newI][newJ] != null && board[newI][newJ].getName().equals("king") && board[newI][newJ].isWhite() != isWhite()) {
-                    System.out.println("King is next to the thing at " + locKing[0] + " " + locKing[1]);
+                if (board[newI][newJ] != null && board[newI][newJ].getPiece() == Piece.KING && board[newI][newJ].isWhite() != isWhite()) {
+                    System.out.println("King is next to the thing at " + locI + " " + locJ);
                     return true;
                 }
             }
@@ -219,7 +219,6 @@ public abstract class ChessPiece {
 
     //For debugging purposes
     public String toString() {
-        return name + " - [" + location[0] + "][" + location[1] + "]";
+        return piece + " - [" + location[0] + "][" + location[1] + "]";
     }
-
 }

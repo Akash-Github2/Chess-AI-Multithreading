@@ -58,7 +58,7 @@ public class Controller {
         int selectedJ = selectedLocArr[1];
         ArrayList<Integer[]> posMoves = new ArrayList<>();
         if (selectedI != -1) {
-            posMoves = boardClass.board[selectedI][selectedJ].getPossibleMoves(boardClass);
+            posMoves = boardClass.getPosMoves4PieceAtLoc(selectedI, selectedJ);
         }
 
         for (int i = 0; i < boardClass.board.length; i++) {
@@ -111,8 +111,9 @@ public class Controller {
 
     //Determines what happens when the user selects a tile
     public void clickedLocationHandler(int i, int j, boolean isHighlighted) {
-        int selectedI = boardClass.getSelectedLoc()[0];
-        int selectedJ = boardClass.getSelectedLoc()[1];
+        int[] selectedLocArr = boardClass.getSelectedLoc();
+        int selectedI = selectedLocArr[0];
+        int selectedJ = selectedLocArr[1];
         //if nothing is currently selected or the highlighted tile is selected or the selected tile isn't already highlighted (aka. isn't a valid move)
         if (selectedI == -1 || (selectedI == i && selectedJ == j) || !isHighlighted) {
             if (boardClass.board[i][j] != null) { //can only select a tile that isn't blank
@@ -121,7 +122,7 @@ public class Controller {
                 boardClass.toggleSelectedLoc(-1, -1);
             }
         } else { //if a tile selected is a possible move (it will move to the new position)
-            boardClass.movePiece(new int[]{selectedI, selectedJ}, new int[]{i,j});
+            boardClass.movePiece(selectedI, selectedJ, i,j);
             boardClass.toggleSelectedLoc(-1, -1);
         }
 
@@ -129,12 +130,12 @@ public class Controller {
     }
 
     //Condition, given the selected pieces, determines if the curr location should be highlighted
-    //Now, it's only selecting if it's the selected tile or the one in front of it
-    //Will change to selecting all the tiles that are possible moves
+    //Show the overall possible moves (eliminates some of the other options when it would result in it still being check)
     public boolean shouldHighlight(int currI, int currJ, ArrayList<Integer[]> posMoves) { //posMoves is the list of possible moves from the selectedI and selectedJ
+        int[] selectedLocArr = boardClass.getSelectedLoc();
+        int selectedI = selectedLocArr[0];
+        int selectedJ = selectedLocArr[1];
         //No tile is selected
-        int selectedI = boardClass.getSelectedLoc()[0];
-        int selectedJ = boardClass.getSelectedLoc()[1];
         if (selectedI == -1) { //if either that or selectedJ = -1, it's false
             return false;
         }

@@ -3,11 +3,11 @@ package sample;
 import java.util.ArrayList;
 
 public class BlackPiece extends ChessPiece {
-    public BlackPiece(String name, double numVal, int i, int j) {
-        super(name, numVal, new int[]{i,j});
+    public BlackPiece(Piece piece, double numVal, int i, int j) {
+        super(piece, numVal, i,j);
     }
     public String getImageName() {
-        return name + "_black";
+        return piece + "_black";
     }
     public boolean isWhite() {
         return false;
