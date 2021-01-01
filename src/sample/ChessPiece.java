@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public abstract class ChessPiece {
     protected String name; //pawn, knight, bishop, rook, queen, king
     protected double numVal; //1, 3, 3, 5, 10, 100
-    protected int[] location = new int[2]; // "ij" - use substring() to get i and j
+    protected int[] location = new int[2]; // {i,j}
 
     protected ChessPiece(String name, double numVal, int[] location) {
         this.name = name;
@@ -62,7 +62,7 @@ public abstract class ChessPiece {
             int newI = location[0] + iChanges[i];
             int newJ = location[1] + jChanges[i];
             //determines if the new position is in bounds and if it's not their own color piece
-            if (newI >= 0 && newI < board.length && newJ >= 0 && newJ < board[0].length && (board[newI][newJ] == null || board[newI][newJ].isWhite() != isWhite())) {
+            if (newI >= 0 && newI < 8 && newJ >= 0 && newJ < 8 && (board[newI][newJ] == null || board[newI][newJ].isWhite() != isWhite())) {
                 posMoves.add(new Integer[]{newI, newJ});
             }
         }
@@ -166,7 +166,68 @@ public abstract class ChessPiece {
     }
 
     private ArrayList<Integer[]> getPosMoves4King(BoardClass boardClass) {
-        return new ArrayList<>();
+        ArrayList<Integer[]> posMoves = new ArrayList<>();
+        int[] iChanges = {-1, 0, 1, -1, 1, -1, 0, 1};
+        int[] jChanges = {-1, -1, -1, 0, 0, 1, 1, 1};
+
+        for (int i = 0; i < iChanges.length; i++) {
+            int newI = location[0] + iChanges[i];
+            int newJ = location[1] + jChanges[i];
+            //Checks if it's in bounds and not the same color piece
+            if (newI >= 0 && newI < 8 && newJ >= 0 && newJ < 8 && (boardClass.board[newI][newJ] == null || boardClass.board[newI][newJ].isWhite() != isWhite())) {
+                //Checks if the move is possible
+                if (isMovePossible(boardClass, new int[]{newI, newJ})) {
+                    posMoves.add(new Integer[]{newI, newJ});
+                }
+            }
+        }
+
+        //Still need to implement the castling stuff here!!
+
+        return posMoves;
+    }
+
+    //locKing is given, not found -> king isn't actually in that spot -> saves time
+    private boolean isMovePossible(BoardClass boardClass, int[] locKing) {
+        ArrayList<ChessPiece> defendingPieces = boardClass.whitePieces; //The one that might be in check
+        ArrayList<ChessPiece> attackingPieces = boardClass.blackPieces;
+        if (!isWhite()) {
+            defendingPieces = boardClass.blackPieces;
+            attackingPieces = boardClass.whitePieces;
+        }
+        //Sees if possible moves land on Defending King
+        for (int i = 0; i < attackingPieces.size(); i++) {
+            //Doesn't check for king because it would cause an infinite loop
+            if (!attackingPieces.get(i).getName().equals("king")) {
+                ArrayList<Integer[]> tempPosMoves = attackingPieces.get(i).getAllPossibleMoves(boardClass);
+                for (int j = 0; j < tempPosMoves.size(); j++) {
+                    if (tempPosMoves.get(j)[0] == locKing[0] && tempPosMoves.get(j)[1] == locKing[1]) {
+                        return false;
+                    }
+                }
+            }
+        }
+        //If the new spot is next to the other king, the move isn't possible
+        return !isNextToOpposingKing(boardClass.board, locKing);
+    }
+    //Checks if the new position would be next to the opposing king
+    private boolean isNextToOpposingKing(ChessPiece[][] board, int[] locKing) {
+        int[] iChanges = {-1, 0, 1, -1, 1, -1, 0, 1};
+        int[] jChanges = {-1, -1, -1, 0, 0, 1, 1, 1};
+        for (int i = 0; i < iChanges.length; i++) {
+            int newI = locKing[0] + iChanges[i];
+            int newJ = locKing[1] + jChanges[i];
+            //If the spot at [newI][newJ] is occupied by opposing king
+            if (board[newI][newJ] != null && board[newI][newJ].getName().equals("king") && board[newI][newJ].isWhite() != isWhite()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //For debugging purposes
+    public String toString() {
+        return name + " - [" + location[0] + "][" + location[1] + "]";
     }
 
 }

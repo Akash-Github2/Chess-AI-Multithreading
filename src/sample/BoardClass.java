@@ -48,6 +48,58 @@ public class BoardClass {
         }
     }
 
+    public void movePiece(int[] initLoc, int[] finLoc) { //Assumes the move is possible
+        int initI = initLoc[0];
+        int initJ = initLoc[1];
+        int finI = finLoc[0];
+        int finJ = finLoc[1];
+        if (board[finI][finJ] != null) {
+            ArrayList<ChessPiece> toCheck = blackPieces;
+            if (!board[initI][initJ].isWhite()) {
+                toCheck = whitePieces;
+            }
+            //Removes the opponent's piece that will be taken from the arraylist
+            for (int i = 0; i < toCheck.size(); i++) {
+                int[] tempLoc = toCheck.get(i).getLocation();
+                if (tempLoc[0] == finI && tempLoc[1] == finJ) {
+                    toCheck.remove(i);
+                    break;
+                }
+            }
+        }
+        board[finI][finJ] = board[initI][initJ];
+        board[finI][finJ].setLocation(new int[]{finI,finJ});
+        board[initI][initJ] = null;
+    }
+
+    public boolean isInCheck(boolean isWhite) {
+        int[] locKing = new int[2];
+        ArrayList<ChessPiece> defendingPieces = whitePieces; //The one that might be in check
+        ArrayList<ChessPiece> attackingPieces = blackPieces;
+        if (!isWhite) {
+            defendingPieces = blackPieces;
+            attackingPieces = whitePieces;
+        }
+        //Locates King
+        for (int i = 0; i < defendingPieces.size(); i++) {
+            if (defendingPieces.get(i).getName().equals("king")) {
+                locKing = defendingPieces.get(i).getLocation();
+            }
+        }
+        //Sees if possible moves land on Opposing King
+        for (int i = 0; i < attackingPieces.size(); i++) {
+            if (!attackingPieces.get(i).getName().equals("king")) { //King can't check other king so won't include King to save time
+                ArrayList<Integer[]> tempPosMoves = attackingPieces.get(i).getAllPossibleMoves(this);
+                for (int j = 0; j < tempPosMoves.size(); j++) {
+                    if (tempPosMoves.get(j)[0] == locKing[0] && tempPosMoves.get(j)[1] == locKing[1]) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public void initializeBoard() {
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {

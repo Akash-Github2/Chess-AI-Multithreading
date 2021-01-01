@@ -67,7 +67,8 @@ public class Controller {
 
                 //Determines what color the tile background will be
                 String bgHexStr = "";
-                if (shouldHighlight(selectedI, selectedJ, i, j)) {
+                boolean shouldHighlight = shouldHighlight(i, j);
+                if (shouldHighlight) {
                     bgHexStr = "FFFF00";
                 } else {
                     if ((i + j) % 2 == 0) { //cross pattern background
@@ -94,12 +95,10 @@ public class Controller {
                 //needed because values in the event handler must be of type final
                 final int iTemp = i;
                 final int jTemp = j;
+                final boolean shouldHighlightTemp = shouldHighlight;
                 //Event Handler for clicking on a tile
                 tempCont.setOnMouseClicked(e -> {
-                    if (boardClass.board[iTemp][jTemp] != null) { //can only select a tile that isn't blank
-//                        System.out.println(iTemp + " " + jTemp);
-                        clickedLocationHandler(iTemp, jTemp);
-                    }
+                    clickedLocationHandler(iTemp, jTemp, shouldHighlightTemp);
                 });
                 boardContainer.add(tempCont, j, i);
             }
@@ -107,17 +106,32 @@ public class Controller {
     }
 
     //Determines what happens when the user selects a tile
-    public void clickedLocationHandler(int i, int j) {
-        boardClass.toggleSelectedLoc(i, j);
+    public void clickedLocationHandler(int i, int j, boolean isHighlighted) {
+        int selectedI = boardClass.getSelectedLoc()[0];
+        int selectedJ = boardClass.getSelectedLoc()[1];
+        //if nothing is currently selected or the highlighted tile is selected or the selected tile isn't already highlighted (aka. isn't a valid move)
+        if (selectedI == -1 || (selectedI == i && selectedJ == j) || !isHighlighted) {
+            if (boardClass.board[i][j] != null) { //can only select a tile that isn't blank
+                boardClass.toggleSelectedLoc(i, j);
+            } else {
+                boardClass.toggleSelectedLoc(-1, -1);
+            }
+        } else { //if a tile selected is a possible move
+            boardClass.movePiece(new int[]{selectedI, selectedJ}, new int[]{i,j});
+            boardClass.toggleSelectedLoc(-1, -1);
+        }
+
         drawBoard();
     }
 
     //Condition, given the selected pieces, determines if the curr location should be highlighted
     //Now, it's only selecting if it's the selected tile or the one in front of it
     //Will change to selecting all the tiles that are possible moves
-    public boolean shouldHighlight(int selectedI, int selectedJ, int currI, int currJ) {
+    public boolean shouldHighlight(int currI, int currJ) {
         //No tile is selected
-        if (selectedI == -1 && selectedJ == -1) {
+        int selectedI = boardClass.getSelectedLoc()[0];
+        int selectedJ = boardClass.getSelectedLoc()[1];
+        if (selectedI == -1) { //if either that or selectedJ = -1, it's false
             return false;
         }
         //Highlight the tile that is pressed
