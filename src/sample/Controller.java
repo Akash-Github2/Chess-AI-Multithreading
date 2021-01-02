@@ -15,20 +15,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Controller {
-    private String directoryPath = "file:///Users/akash/software/Akash/JavaFX Projects/Chess-AI/src/sample/ChessPieces/";
+    private final String directoryPath = "file:///Users/akash/software/Akash/JavaFX Projects/Chess-AI/src/sample/ChessPieces/";
     @FXML
     private GridPane boardContainer;
-
-    private HashMap<String, Image> pieceNameToImg = new HashMap<>();
-    private final String[] diffPiecesNoColor = new String[]{"king", "queen", "rook", "knight", "bishop", "pawn"};
+    private final HashMap<String, Image> pieceNameToImg = new HashMap<>();
     public BoardClass boardClass = new BoardClass();
 
     @FXML
     protected void initialize() {
         //Making it easier to access the chess piece images
-        for (int i = 0; i < diffPiecesNoColor.length; i++) {
-            pieceNameToImg.put(diffPiecesNoColor[i] + "_white", new Image(directoryPath + diffPiecesNoColor[i] + "_white.png"));
-            pieceNameToImg.put(diffPiecesNoColor[i] + "_black", new Image(directoryPath + diffPiecesNoColor[i] + "_black.png"));
+        for (Piece piece : Piece.values()) { //iterates over the values of the enum
+            pieceNameToImg.put(piece + "_white", new Image(directoryPath + piece + "_white.png"));
+            pieceNameToImg.put(piece + "_black", new Image(directoryPath + piece + "_black.png"));
         }
         pieceNameToImg.put("empty", new Image(directoryPath + "empty.png"));
 
@@ -122,7 +120,7 @@ public class Controller {
                 boardClass.toggleSelectedLoc(-1, -1);
             }
         } else { //if a tile selected is a possible move (it will move to the new position)
-            boardClass.movePiece(selectedI, selectedJ, i,j);
+            boardClass.makeMoveOverall(selectedI, selectedJ, i,j, false);
             boardClass.toggleSelectedLoc(-1, -1);
         }
 
