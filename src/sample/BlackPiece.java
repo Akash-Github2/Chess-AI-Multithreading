@@ -6,6 +6,10 @@ public class BlackPiece extends ChessPiece {
     public BlackPiece(Piece piece, double numVal, int i, int j) {
         super(piece, numVal, i,j);
     }
+    //Check that it is an instance of BlackPiece before using this copy constructor
+    public BlackPiece(ChessPiece blackPiece) {
+        super(blackPiece.getPiece(), blackPiece.getNumVal(), blackPiece.getLocation()[0], blackPiece.getLocation()[1]);
+    }
     public String getImageName() {
         return piece + "_black";
     }

@@ -21,9 +21,6 @@ public class Controller {
     private final HashMap<String, Image> pieceNameToImg = new HashMap<>();
     public ChessGame game = new ChessGame();
     public BoardClass boardClass = new BoardClass();
-    private int moveCounter = 0;
-    private final HashMap<String, Integer> boardFreq = new HashMap<>(); // Checks for 3 fold rule (tie)
-    private final ArrayList<Double[]> depthValToSkip = new ArrayList<>(); // 2,3,4,5...
     private boolean currPlayerIsWhite = true;
 
     @FXML
@@ -54,30 +51,30 @@ public class Controller {
         //Initializes the board to the default configurations
         drawBoard();
         //Starting the game
-        startGame();
+        game.startGame();
 
         //Game Loop
         new AnimationTimer() {
             public void handle(long currentNanoTime) {
                 if (!currPlayerIsWhite) {
-                    moveCounter++;
+                    game.moveCounter++;
                     boardClass.printAllPossibleMoves(currPlayerIsWhite);
+                    //Do something with this data later
                     String gamePhase = "";
-                    if (boardClass.isEarlyGame(moveCounter)) {
+                    if (boardClass.isEarlyGame(game.moveCounter)) {
                         gamePhase = " (Early Game)";
-                    } else if (boardClass.isMidGame(moveCounter)) {
+                    } else if (boardClass.isMidGame(game.moveCounter)) {
                         gamePhase = " (Mid Game)";
                     } else {
                         gamePhase = " (End Game)";
                     }
-//                callAI(gamePhase, boardClass, Math.max(whiteDepth, blackDepth) == blackDepth, blackDepth, "Black");
-                    game.computerMove(boardClass, false);
+                    game.findBestMove(boardClass, 4, currPlayerIsWhite);
                     drawBoard();
                     //Checking if game is over
                     boolean isCheckmate = boardClass.isCheckMate(!currPlayerIsWhite);
                     boolean isTie = false;
                     if (!isCheckmate) {
-                        isTie = boardClass.isTie(!currPlayerIsWhite, boardFreq);
+                        isTie = boardClass.isTie(!currPlayerIsWhite, boardClass.boardFreq);
                     }
                     if (isCheckmate) {
                         System.out.println((currPlayerIsWhite) ? "White Wins!" : "Black Wins!");
@@ -91,12 +88,12 @@ public class Controller {
                     currPlayerIsWhite = !currPlayerIsWhite; //Switches current player
 
                     //Start of User Stuff
-                    moveCounter++;
+                    game.moveCounter++;
                     boardClass.printAllPossibleMoves(currPlayerIsWhite);
                     gamePhase = "";
-                    if (boardClass.isEarlyGame(moveCounter)) {
+                    if (boardClass.isEarlyGame(game.moveCounter)) {
                         gamePhase = " (Early Game)";
-                    } else if (boardClass.isMidGame(moveCounter)) {
+                    } else if (boardClass.isMidGame(game.moveCounter)) {
                         gamePhase = " (Mid Game)";
                     } else {
                         gamePhase = " (End Game)";
@@ -104,28 +101,28 @@ public class Controller {
 
                 }
                 //If you want the computer to play itself (only suitable for random moves so far)
-                /*
-                else {
-                    game.computerMove(boardClass, true);
-                    //Checking if game is over
-                    boolean isCheckmate = boardClass.isCheckMate(!currPlayerIsWhite);
-                    boolean isTie = false;
-                    if (!isCheckmate) {
-                        isTie = boardClass.isTie(!currPlayerIsWhite, boardFreq);
-                    }
-                    if (isCheckmate) {
-                        System.out.println((currPlayerIsWhite) ? "White Wins!" : "Black Wins!");
-                    } else if (isTie) {
-                        System.out.println("Tie game!");
-                    }
-                    if (isCheckmate || isTie) {
-                        System.out.println("Finished Game Board:");
-                        stop();
-                    } else { //when game is over, animationtimer won't be running anymore
-                        currPlayerIsWhite = !currPlayerIsWhite;
-                    }
-                }
-                */
+
+//                else {
+//                    game.computerMove(boardClass, true);
+//                    //Checking if game is over
+//                    boolean isCheckmate = boardClass.isCheckMate(!currPlayerIsWhite);
+//                    boolean isTie = false;
+//                    if (!isCheckmate) {
+//                        isTie = boardClass.isTie(!currPlayerIsWhite, game.boardFreq);
+//                    }
+//                    if (isCheckmate) {
+//                        System.out.println((currPlayerIsWhite) ? "White Wins!" : "Black Wins!");
+//                    } else if (isTie) {
+//                        System.out.println("Tie game!");
+//                    }
+//                    if (isCheckmate || isTie) {
+//                        System.out.println("Finished Game Board:");
+//                        stop();
+//                    } else { //when game is over, animationtimer won't be running anymore
+//                        currPlayerIsWhite = !currPlayerIsWhite;
+//                    }
+//                }
+
             }
         }.start();
     }
@@ -204,12 +201,12 @@ public class Controller {
             }
         } else { //if a tile selected is a possible move (it will move to the new position)
             boardClass.toggleSelectedLoc(-1, -1);
-            game.userMove(boardClass, selectedI, selectedJ, i, j, boardFreq);
+            game.userMove(boardClass, selectedI, selectedJ, i, j);
             //Checking if game is over
             boolean isCheckmate = boardClass.isCheckMate(!currPlayerIsWhite);
             boolean isTie = false;
             if (!isCheckmate) {
-                isTie = boardClass.isTie(!currPlayerIsWhite, boardFreq);
+                isTie = boardClass.isTie(!currPlayerIsWhite, boardClass.boardFreq);
             }
             if (isCheckmate) {
                 System.out.println((currPlayerIsWhite) ? "White Wins!" : "Black Wins!");
@@ -246,16 +243,5 @@ public class Controller {
             }
         }
         return false;
-    }
-
-    public void startGame() { // Assigns initial data
-        //Will deal with these values later
-        depthValToSkip.add(new Double[]{ 2.0, 2.2, 2.4, 2.7, 3.0, 3.4, 4.0, 4.5 }); //depth2valToSkip
-        depthValToSkip.add(new Double[]{ 2.0, 2.2, 2.4, 2.8, 3.3, 3.8, 4.8, 5.5 }); //depth3valToSkip
-        depthValToSkip.add(new Double[]{ 2.0, 2.2, 2.4, 2.8, 3.3, 3.8, 4.8, 6.0 }); //depth4valToSkip
-        depthValToSkip.add(new Double[]{ 2.5, 2.8, 3.0, 3.5, 3.9, 4.5, 5.4, 6.8 }); //depth5valToSkip
-        depthValToSkip.add(new Double[]{ 3.0, 3.8, 4.4, 5.1, 5.8, 6.3, 7.4, 8.5 }); //depth6valToSkip
-        System.out.print("\033[H\033[2J"); // Clear Console Command
-        System.out.println("Welcome to My Chess Game!");
     }
 }

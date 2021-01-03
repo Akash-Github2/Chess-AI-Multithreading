@@ -3,12 +3,13 @@ package sample;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 public class BoardClass {
     public ChessPiece[][] board = new ChessPiece[8][8];
     public ArrayList<ChessPiece> whitePieces = new ArrayList<>();
     public ArrayList<ChessPiece> blackPieces = new ArrayList<>();
-    private final int[] selectedLoc = new int[]{-1,-1};
+    private int[] selectedLoc = new int[]{-1,-1};
     public boolean wKingHasMoved = false;
     public boolean bKingHasMoved = false;
     public boolean wRookLHasMoved = false;
@@ -17,6 +18,7 @@ public class BoardClass {
     public boolean bRookRHasMoved = false;
     public boolean isAlmostCheckmate = false;
     public int movesSinceNoCaptureOrPawn = 0;
+    public final HashMap<String, Integer> boardFreq = new HashMap<>(); // Checks for 3 fold rule (tie)
 
     public int[] getSelectedLoc() {
         return selectedLoc;
@@ -35,6 +37,42 @@ public class BoardClass {
         initializeBoard();
         //Populates the whitePieces & blackPieces ArrayLists
         initializeWhiteBlackLists();
+    }
+
+    //Copy Constructor for entire board class -> used in multithreading to avoid synchronization issues
+    public BoardClass(BoardClass boardClass) {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                if (boardClass.board[i][j] == null) {
+                    this.board[i][j] = null;
+                } else if (boardClass.board[i][j] instanceof WhitePiece) {
+                    this.board[i][j] = new WhitePiece(boardClass.board[i][j]);
+                } else {
+                    this.board[i][j] = new BlackPiece(boardClass.board[i][j]);
+                }
+            }
+        }
+        for (ChessPiece whitePiece : boardClass.whitePieces) {
+            this.whitePieces.add(new WhitePiece(whitePiece));
+        }
+        for (ChessPiece blackPiece : boardClass.blackPieces) {
+            this.blackPieces.add(new BlackPiece(blackPiece));
+        }
+        this.selectedLoc = new int[]{boardClass.selectedLoc[0], boardClass.selectedLoc[1]};
+        this.wKingHasMoved = boardClass.wKingHasMoved;
+        this.bKingHasMoved = boardClass.bKingHasMoved;
+        this.wRookLHasMoved = boardClass.wRookLHasMoved;
+        this.bRookLHasMoved = boardClass.bRookLHasMoved;
+        this.wRookRHasMoved = boardClass.wRookRHasMoved;
+        this.bRookRHasMoved = boardClass.bRookRHasMoved;
+        this.isAlmostCheckmate = boardClass.isAlmostCheckmate;
+        this.movesSinceNoCaptureOrPawn = boardClass.movesSinceNoCaptureOrPawn;
+
+        for (Map.Entry mapElement : boardClass.boardFreq.entrySet()) {
+            String key = (String)mapElement.getKey();
+            int val = ((int)mapElement.getValue());
+            this.boardFreq.put(key, val);
+        }
     }
 
     //Makes the move - accounts for pawn promotion and castling as well as normal moves
