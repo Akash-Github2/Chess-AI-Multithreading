@@ -28,9 +28,9 @@ public class ChessGame {
         }
     }
 
-    //Temporary - randomly chooses move
-    public void computerMove(BoardClass boardClass) {
-        ArrayList<String> allPosMoves = boardClass.getAllPossibleMoves(false);
+    //Temporary - randomly chooses move (replace with AI choosing the move) - make it so the AI can be black or white
+    public void computerMove(BoardClass boardClass, boolean isWhite) {
+        ArrayList<String> allPosMoves = boardClass.getAllPossibleMoves(isWhite);
         String move = getRandomMove(allPosMoves);
         int initI = Integer.parseInt(move.substring(0, 1));
         int initJ = Integer.parseInt(move.substring(2, 3));

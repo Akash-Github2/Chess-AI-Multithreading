@@ -11,13 +11,6 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -26,6 +19,12 @@ public class Controller {
     @FXML
     private GridPane boardContainer;
     private final HashMap<String, Image> pieceNameToImg = new HashMap<>();
+    public ChessGame game = new ChessGame();
+    public BoardClass boardClass = new BoardClass();
+    private int moveCounter = 0;
+    private final HashMap<String, Integer> boardFreq = new HashMap<>(); // Checks for 3 fold rule (tie)
+    private final ArrayList<Double[]> depthValToSkip = new ArrayList<>(); // 2,3,4,5...
+    private boolean currPlayerIsWhite = true;
 
     @FXML
     protected void initialize() {
@@ -56,7 +55,9 @@ public class Controller {
         drawBoard();
         //Starting the game
         startGame();
-        new AnimationTimer() { //probably don't use animation timer
+
+        //Game Loop
+        new AnimationTimer() {
             public void handle(long currentNanoTime) {
                 if (!currPlayerIsWhite) {
                     moveCounter++;
@@ -70,25 +71,61 @@ public class Controller {
                         gamePhase = " (End Game)";
                     }
 //                callAI(gamePhase, boardClass, Math.max(whiteDepth, blackDepth) == blackDepth, blackDepth, "Black");
-                    game.computerMove(boardClass);
+                    game.computerMove(boardClass, false);
                     drawBoard();
                     //Checking if game is over
-//                boolean isCheckmate = boardClass.isCheckMate(!currPlayerIsWhite);
-//                boolean isTie = false;
-//                if (!isCheckmate) {
-//                    isTie = boardClass.isTie(!currPlayerIsWhite, boardFreq);
-//                }
-//                if (isCheckmate) {
-//                    System.out.println((currPlayerIsWhite) ? "White Wins!" : "Black Wins!");
-//                } else if (isTie) {
-//                    System.out.println("Tie game!");
-//                }
-//                if (isCheckmate || isTie) {
-//                    System.out.println("Finished Game Board:");
-//                    this.stop();
-//                }
-                currPlayerIsWhite = !currPlayerIsWhite;
+                    boolean isCheckmate = boardClass.isCheckMate(!currPlayerIsWhite);
+                    boolean isTie = false;
+                    if (!isCheckmate) {
+                        isTie = boardClass.isTie(!currPlayerIsWhite, boardFreq);
+                    }
+                    if (isCheckmate) {
+                        System.out.println((currPlayerIsWhite) ? "White Wins!" : "Black Wins!");
+                    } else if (isTie) {
+                        System.out.println("Tie game!");
+                    }
+                    if (isCheckmate || isTie) {
+                        System.out.println("Finished Game Board:");
+                        stop();
+                    }
+                    currPlayerIsWhite = !currPlayerIsWhite; //Switches current player
+
+                    //Start of User Stuff
+                    moveCounter++;
+                    boardClass.printAllPossibleMoves(currPlayerIsWhite);
+                    gamePhase = "";
+                    if (boardClass.isEarlyGame(moveCounter)) {
+                        gamePhase = " (Early Game)";
+                    } else if (boardClass.isMidGame(moveCounter)) {
+                        gamePhase = " (Mid Game)";
+                    } else {
+                        gamePhase = " (End Game)";
+                    }
+
                 }
+                //If you want the computer to play itself (only suitable for random moves so far)
+                /*
+                else {
+                    game.computerMove(boardClass, true);
+                    //Checking if game is over
+                    boolean isCheckmate = boardClass.isCheckMate(!currPlayerIsWhite);
+                    boolean isTie = false;
+                    if (!isCheckmate) {
+                        isTie = boardClass.isTie(!currPlayerIsWhite, boardFreq);
+                    }
+                    if (isCheckmate) {
+                        System.out.println((currPlayerIsWhite) ? "White Wins!" : "Black Wins!");
+                    } else if (isTie) {
+                        System.out.println("Tie game!");
+                    }
+                    if (isCheckmate || isTie) {
+                        System.out.println("Finished Game Board:");
+                        stop();
+                    } else { //when game is over, animationtimer won't be running anymore
+                        currPlayerIsWhite = !currPlayerIsWhite;
+                    }
+                }
+                */
             }
         }.start();
     }
@@ -143,6 +180,7 @@ public class Controller {
                 final boolean shouldHighlightTemp = shouldHighlight;
                 //Event Handler for clicking on a tile
                 tempCont.setOnMouseClicked(e -> {
+                    //If the current player is white and you are not directly clicking on a black piece unless it will be attacked
                     if (currPlayerIsWhite && !(selectedI == -1 && (boardClass.board[iTemp][jTemp] != null && !boardClass.board[iTemp][jTemp].isWhite()))) {
                         clickedLocationHandler(iTemp, jTemp, shouldHighlightTemp);
                     }
@@ -165,13 +203,26 @@ public class Controller {
                 boardClass.toggleSelectedLoc(-1, -1);
             }
         } else { //if a tile selected is a possible move (it will move to the new position)
-            game.userMove(boardClass, selectedI, selectedJ, i, j, boardFreq);
             boardClass.toggleSelectedLoc(-1, -1);
-            currPlayerIsWhite = !currPlayerIsWhite;
+            game.userMove(boardClass, selectedI, selectedJ, i, j, boardFreq);
+            //Checking if game is over
+            boolean isCheckmate = boardClass.isCheckMate(!currPlayerIsWhite);
+            boolean isTie = false;
+            if (!isCheckmate) {
+                isTie = boardClass.isTie(!currPlayerIsWhite, boardFreq);
+            }
+            if (isCheckmate) {
+                System.out.println((currPlayerIsWhite) ? "White Wins!" : "Black Wins!");
+            } else if (isTie) {
+                System.out.println("Tie game!");
+            }
+            if (isCheckmate || isTie) {
+                System.out.println("Finished Game Board:");
+            } else { //when game is over, animationtimer won't be running anymore
+                currPlayerIsWhite = !currPlayerIsWhite;
+            }
         }
-
         drawBoard();
-
     }
 
     //Condition, given the selected pieces, determines if the curr location should be highlighted
@@ -197,16 +248,7 @@ public class Controller {
         return false;
     }
 
-    //--------Chess Game Related Stuff--------\\
-
-    public ChessGame game = new ChessGame();
-    public BoardClass boardClass = new BoardClass();
-    private int moveCounter = 0;
-    private final HashMap<String, Integer> boardFreq = new HashMap<>(); // Checks for 3 fold rule (tie)
-    private final ArrayList<Double[]> depthValToSkip = new ArrayList<>(); // 2,3,4,5...
-    private boolean currPlayerIsWhite = true;
-
-    public void startGame() { // Driver
+    public void startGame() { // Assigns initial data
         //Will deal with these values later
         depthValToSkip.add(new Double[]{ 2.0, 2.2, 2.4, 2.7, 3.0, 3.4, 4.0, 4.5 }); //depth2valToSkip
         depthValToSkip.add(new Double[]{ 2.0, 2.2, 2.4, 2.8, 3.3, 3.8, 4.8, 5.5 }); //depth3valToSkip
@@ -215,51 +257,5 @@ public class Controller {
         depthValToSkip.add(new Double[]{ 3.0, 3.8, 4.4, 5.1, 5.8, 6.3, 7.4, 8.5 }); //depth6valToSkip
         System.out.print("\033[H\033[2J"); // Clear Console Command
         System.out.println("Welcome to My Chess Game!");
-//        playGame(4);
-    }
-
-    //Game Loop
-    public void playGame(int aiDepth) {
-
-        moveCounter++;
-//        boardClass.printAllPossibleMoves(currPlayerIsWhite);
-        String gamePhase = "";
-        if (boardClass.isEarlyGame(moveCounter)) {
-            gamePhase = " (Early Game)";
-        } else if (boardClass.isMidGame(moveCounter)) {
-            gamePhase = " (Mid Game)";
-        } else {
-            gamePhase = " (End Game)";
-        }
-        if (!currPlayerIsWhite) {
-            while(currPlayerIsWhite) {
-                //waits for user to do turn
-            }
-        } else {
-//                callAI(gamePhase, boardClass, Math.max(whiteDepth, blackDepth) == blackDepth, blackDepth, "Black");
-            game.computerMove(boardClass);
-            drawBoard();
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        //Checking if game is over
-        boolean isCheckmate = boardClass.isCheckMate(!currPlayerIsWhite);
-        boolean isTie = false;
-        if (!isCheckmate) {
-            isTie = boardClass.isTie(!currPlayerIsWhite, boardFreq);
-        }
-        if (isCheckmate) {
-            System.out.println((currPlayerIsWhite) ? "White Wins!" : "Black Wins!");
-        } else if (isTie) {
-            System.out.println("Tie game!");
-        }
-        if (isCheckmate || isTie) {
-            System.out.println("Finished Game Board:");
-            return;
-        }
-        currPlayerIsWhite = !currPlayerIsWhite;
     }
 }
