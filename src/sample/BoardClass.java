@@ -360,6 +360,18 @@ public class BoardClass {
         return allPosMoves;
     }
 
+    public void printAllPossibleMoves(boolean isWhite) {
+        ArrayList<String> allPosMoves = getAllPossibleMoves(isWhite);
+        System.out.println("Possible Moves: (" + allPosMoves.size() + ")");
+        if (allPosMoves.size() == 0) {
+            System.out.println("N/A");
+            return;
+        }
+        for (String allPosMove : allPosMoves) {
+            System.out.println(allPosMove);
+        }
+    }
+
     //Gets the possible moves for a piece - only the ones that don't result in the king being in check
     public ArrayList<Integer[]> getPosMoves4PieceAtLoc(int locI, int locJ) {
         ArrayList<String> allPosMoves = getAllPossibleMoves(board[locI][locJ].isWhite());
