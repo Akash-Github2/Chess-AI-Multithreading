@@ -66,7 +66,7 @@ public class ChessGame {
     public void findBestMove(BoardClass boardClass, int maxDepth, boolean isComputerWhite) {
         mainList.clear();
         ArrayList<String> allPosMoves = boardClass.getAllPossibleMoves(isComputerWhite);
-        ExecutorService executor = Executors.newFixedThreadPool(allPosMoves.size()); //each move route is done in a different thread
+        ExecutorService executor = Executors.newFixedThreadPool(Math.min(allPosMoves.size(), 10)); //each move route is done in a different thread
         for (String move : allPosMoves) {
             int initI = Integer.parseInt(move.substring(0, 1));
             int initJ = Integer.parseInt(move.substring(2, 3));
@@ -120,15 +120,103 @@ public class ChessGame {
         }
         @Override
         public void run() {
+            double origValDiff = boardClass.getBlackVal(moveCounter) - boardClass.getWhiteVal(moveCounter);
+            if (isComputerWhite) {
+                origValDiff *= -1;
+            }
+            double newValDiff = boardClass.getBlackVal(moveCounter+1) - boardClass.getWhiteVal(moveCounter+1);
+            if (isComputerWhite) {
+                origValDiff *= -1;
+            }
+            double diff = newValDiff - origValDiff;
             userMove(boardClass, initI, initJ, finI, finJ);
-            double score = findBestMoveMain(boardClass, false, 1, maxDepth, moveCounter + 1, isComputerWhite);
-            System.out.println(initI + "," + initJ + "->" + finI + "," + finJ + " - Score: " + score);
+            double score = findBestMoveMain(boardClass, false, 1, maxDepth, moveCounter + 1, isComputerWhite) + diff;
+            System.out.println(initI + "," + initJ + "->" + finI + "," + finJ + " - Score: " + Util.rounded(score));
             addToList(score, initI, initJ, finI, finJ);
         }
     }
 
     //This is the last part left, the multithreading section is done
-    private double findBestMoveMain(BoardClass board, boolean isComputerTurn, int depth, int maxDepth, int tempMoveCounter, boolean isComputerWhite) {
-        return 0;
+    private double findBestMoveMain(BoardClass boardClass, boolean isComputerTurn, int depth, int maxDepth, int tempMoveCounter, boolean isComputerWhite) {
+        boolean isWhite = true;
+        if ((isComputerTurn && !isComputerWhite) || (!isComputerTurn && isComputerWhite)) {
+            isWhite = false;
+        }
+
+        if (boardClass.isCheckMate(!isComputerWhite)) {
+            return 1000 + (maxDepth - depth);
+        } else if (boardClass.isCheckMate(isComputerWhite)) {
+            return -1000 - (maxDepth - depth);
+        } else if (boardClass.isTie(isWhite)) {
+            //If the difference between white and black values isn't much, it's not a great move
+            if (Math.abs(boardClass.getWhiteVal(tempMoveCounter) - boardClass.getBlackVal(tempMoveCounter)) < 2.0) {
+                return -1;
+            }
+            //If computer is winning, tying the game isn't the best move
+            if (isComputerWhite) {
+                return (boardClass.getWhiteVal(tempMoveCounter) - boardClass.getBlackVal(tempMoveCounter)) * -1.5;
+            } else {
+                return (boardClass.getBlackVal(tempMoveCounter) - boardClass.getWhiteVal(tempMoveCounter)) * -1.5;
+            }
+        }
+        //If computer turn, it will try to find the highest value, otherwise it will try to find the lowest value
+        double optVal = (isComputerTurn) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+        ArrayList<String> allPosMoves = boardClass.getAllPossibleMoves(isWhite);
+
+        if (depth < maxDepth) {
+            //Loops through all the possible moves to see which one is the best
+            for (String move : allPosMoves) {
+                int initI = Integer.parseInt(move.substring(0, 1));
+                int initJ = Integer.parseInt(move.substring(2, 3));
+                int finI = Integer.parseInt(move.substring(5, 6));
+                int finJ = Integer.parseInt(move.substring(7, 8));
+                //At the start of the game, the pawn should move first
+                if (moveCounter <= 2 && boardClass.board[initI][initJ].getPiece() != Piece.PAWN) {
+                    continue;
+                }
+
+                ChessPiece origPiece = boardClass.board[finI][finJ];
+                double origValDiff = boardClass.getBlackVal(tempMoveCounter) - boardClass.getWhiteVal(tempMoveCounter);
+                if (isComputerWhite) {
+                    origValDiff *= -1;
+                }
+
+                boolean didPawnPromo = boardClass.makeMoveOverall(initI, initJ, finI, finJ, true); // Try Move
+
+                //Adds current board to the boardFreq in case a tie occurs later
+                String triedBoard = boardClass.toString();
+                boardClass.boardFreq.merge(triedBoard, 1, Integer::sum);
+
+                double newValDiff = boardClass.getBlackVal(tempMoveCounter) - boardClass.getWhiteVal(tempMoveCounter);
+                if (isComputerWhite) {
+                    newValDiff *= -1;
+                }
+
+                double diff = newValDiff - origValDiff; //change in difference values after the move was made
+
+                double n = findBestMoveMain(boardClass, !isComputerTurn, depth + 1, maxDepth, tempMoveCounter + 1,
+                        isComputerWhite) + diff;
+
+                boolean shouldChange = n > optVal;
+                if (!isComputerTurn) {
+                    shouldChange = n < optVal;
+                }
+                if (shouldChange) {
+                    optVal = n;
+                }
+
+                //reset it
+                boardClass.fullyResetMove(initI, initJ, finI, finJ, !isWhite, didPawnPromo, origPiece);
+                if (boardClass.boardFreq.get(triedBoard) == 1) {
+                    boardClass.boardFreq.remove(triedBoard);
+                } else {
+                    boardClass.boardFreq.put(triedBoard, boardClass.boardFreq.get(triedBoard) - 1);
+                }
+            }
+        } else {
+            return 0;
+        }
+
+        return optVal;
     }
 }

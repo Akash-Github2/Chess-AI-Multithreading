@@ -74,7 +74,7 @@ public class Controller {
                     boolean isCheckmate = boardClass.isCheckMate(!currPlayerIsWhite);
                     boolean isTie = false;
                     if (!isCheckmate) {
-                        isTie = boardClass.isTie(!currPlayerIsWhite, boardClass.boardFreq);
+                        isTie = boardClass.isTie(!currPlayerIsWhite);
                     }
                     if (isCheckmate) {
                         System.out.println((currPlayerIsWhite) ? "White Wins!" : "Black Wins!");
@@ -206,7 +206,7 @@ public class Controller {
             boolean isCheckmate = boardClass.isCheckMate(!currPlayerIsWhite);
             boolean isTie = false;
             if (!isCheckmate) {
-                isTie = boardClass.isTie(!currPlayerIsWhite, boardClass.boardFreq);
+                isTie = boardClass.isTie(!currPlayerIsWhite);
             }
             if (isCheckmate) {
                 System.out.println((currPlayerIsWhite) ? "White Wins!" : "Black Wins!");

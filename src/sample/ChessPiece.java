@@ -371,6 +371,37 @@ public abstract class ChessPiece {
 
     //For debugging purposes
     public String toString() {
-        return piece + " - [" + location[0] + "][" + location[1] + "]";
+        if (isWhite()) {
+            switch (piece) {
+                case PAWN:
+                    return "\u2659";
+                case KNIGHT:
+                    return "\u2658";
+                case BISHOP:
+                    return "\u2657";
+                case ROOK:
+                    return "\u2656";
+                case QUEEN:
+                    return "\u2655";
+                case KING:
+                    return "\u2654";
+            }
+        } else {
+            switch (piece) {
+                case PAWN:
+                    return "\u265F";
+                case KNIGHT:
+                    return "\u265E";
+                case BISHOP:
+                    return "\u265D";
+                case ROOK:
+                    return "\u265C";
+                case QUEEN:
+                    return "\u265B";
+                case KING:
+                    return "\u265A";
+            }
+        }
+        return "";
     }
 }

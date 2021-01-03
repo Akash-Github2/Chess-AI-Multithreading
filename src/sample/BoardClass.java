@@ -52,12 +52,40 @@ public class BoardClass {
                 }
             }
         }
-        for (ChessPiece whitePiece : boardClass.whitePieces) {
-            this.whitePieces.add(new WhitePiece(whitePiece));
+
+        //Initialize the white and black lists
+        int whiteKingI = -1;
+        int whiteKingJ = -1;
+        int blackKingI = -1;
+        int blackKingJ = -1;
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                if (board[i][j] != null) {
+                    if (board[i][j].getPiece() != Piece.KING) {
+                        if (board[i][j] instanceof WhitePiece) {
+                            whitePieces.add(board[i][j]);
+                        } else if (board[i][j] instanceof BlackPiece) {
+                            blackPieces.add(board[i][j]);
+                        } else {
+                            System.out.println("error");
+                        }
+                    } else {
+                        if (board[i][j].isWhite()) {
+                            whiteKingI = i;
+                            whiteKingJ = j;
+                        } else {
+                            blackKingI = i;
+                            blackKingJ = j;
+                        }
+                    }
+                }
+            }
         }
-        for (ChessPiece blackPiece : boardClass.blackPieces) {
-            this.blackPieces.add(new BlackPiece(blackPiece));
-        }
+        //Adds king last
+        whitePieces.add(board[whiteKingI][whiteKingJ]);
+        blackPieces.add(board[blackKingI][blackKingJ]);
+
+
         this.selectedLoc = new int[]{boardClass.selectedLoc[0], boardClass.selectedLoc[1]};
         this.wKingHasMoved = boardClass.wKingHasMoved;
         this.bKingHasMoved = boardClass.bKingHasMoved;
@@ -260,6 +288,12 @@ public class BoardClass {
         }
         //Sees if possible moves land on Opposing King
         for (ChessPiece attackingPiece : attackingPieces) {
+
+            try {
+                Piece k = attackingPiece.getPiece();
+            } catch(Exception e) {
+                System.out.println(attackingPieces + "------" + attackingPiece);
+            }
             if (attackingPiece.getPiece() != Piece.KING) { //King can't check other king so won't include King to save time
                 ArrayList<Integer[]> tempPosMoves = attackingPiece.getPossibleMoves(this);
                 for (Integer[] tempPosMove : tempPosMoves) {
@@ -317,7 +351,7 @@ public class BoardClass {
     }
 
     //Tests different cases where the game would be a tie to determine if it is
-    public boolean isTie(boolean isWhite, HashMap<String, Integer> boardFreq) {
+    public boolean isTie(boolean isWhite) {
         ArrayList<String> allPosMoves = getAllPossibleMoves(isWhite);
         if (allPosMoves.size() == 0 || (whitePieces.size() == 1 && blackPieces.size() == 1)) {
             return true;
